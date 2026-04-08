@@ -1,62 +1,113 @@
 # Voice Agent with Twilio and TypeScript
 
-This is a TypeScript-based voice agent that uses Twilio for handling phone calls, Express for the webhook server, and optionally OpenAI for intent detection.
+This project is a focused customer support voice agent built with Twilio, Express, and TypeScript.
+
+It supports one FAQ category from Wise's "Sending money" help content:
+
+- "Where is my money?"
+
+For any question outside that scope, the agent deflects to a human support agent and ends the call.
 
 ## Architecture
 
+- `src/config.ts`: runtime configuration loading
+- `src/intent.ts`: FAQ intent detection
+- `src/twiml.ts`: Twilio voice response builders
+- `src/server.ts`: Express routes and request handling
+- `src/index.ts`: application bootstrap and shutdown
+
+## Call flow
+
+1. A caller hits the Twilio number.
+2. Twilio sends the call to `POST /incoming`.
+3. The agent asks, "Hello. How can I help you today?"
+4. Twilio sends the speech transcript to `POST /voice`.
+5. The app either:
+   - answers the supported FAQ, or
+   - deflects to human support and hangs up.
+
+## Tech stack
+
+- Node.js
+- TypeScript
+- Express
+- Twilio Voice
+
+## Environment variables
+
+Create a `.env` file with:
+
+```env
+PORT=3000
+PUBLIC_BASE_URL=https://your-render-service.onrender.com
+TWILIO_ACCOUNT_SID=ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+TWILIO_AUTH_TOKEN=your_auth_token
+TWILIO_PHONE_NUMBER=+16066606314
 ```
-Call → Twilio → Express webhook → intent check
-     → FAQ answer OR deflect → TwiML response
+
+`PUBLIC_BASE_URL` is optional and is only used for a cleaner startup log.
+
+## Local development
+
+Install dependencies:
+
+```bash
+npm install
 ```
 
-## Setup
+Run the app locally:
 
-1. **Install Dependencies**
-   - Already done: `npm install`
+```bash
+npm run build
+npm start
+```
 
-2. **Environment Variables**
-   - Copy `.env` and fill in your Twilio credentials:
-     - `TWILIO_ACCOUNT_SID`
-     - `TWILIO_AUTH_TOKEN`
-     - `TWILIO_PHONE_NUMBER`
-   - Optional: `OPENAI_API_KEY` for LLM-based intent detection
+Run the test suite:
 
-3. **Twilio Configuration**
-   - Buy a phone number in Twilio Console
-   - Set Voice Webhook URL to: `https://your-domain/incoming`
-   - Method: POST
+```bash
+npm test
+```
 
-## Running the Server
+## Twilio setup
 
-- Local: `npm start`
-- Expose to internet: Use ngrok - `npx ngrok http 3000`
-- Use the ngrok URL in Twilio webhook
+Configure your Twilio phone number's voice webhook as:
 
-## Features
+- URL: `https://your-domain/incoming`
+- Method: `POST`
 
-- Handles incoming calls
-- Speech-to-text via Twilio
-- Keyword-based intent detection for "Where is my money?" queries
-- Responds with FAQ or deflects to human agent
+For local testing, expose `localhost:3000` with a tunneling service such as ngrok and use the public URL in Twilio.
 
-## Optional: OpenAI Integration
+## Smoke tests
 
-To use OpenAI for better intent detection:
+Test the incoming call webhook:
 
-1. Install: `npm install openai`
-2. Add `OPENAI_API_KEY` to `.env`
-3. Uncomment and use the OpenAI version in `index.ts`
+```bash
+curl -X POST http://localhost:3000/incoming -i
+```
 
-## Call Flow Example
+Test the supported FAQ path:
 
-- User calls
-- Bot: "Hello, how can I help you today?"
-- User: "I didn't receive my money"
-- Bot: Provides FAQ response
-- Or for unsupported: "Transferring to human agent." (hangs up)
+```bash
+curl -X POST http://localhost:3000/voice -i --data-urlencode "SpeechResult=I didn't receive my money"
+```
 
-## Next Steps
+Test the unsupported path:
 
-- Real-time streaming agent
-- Whisper + WebSockets
-- Multi-intent FAQ with RAG
+```bash
+curl -X POST http://localhost:3000/voice -i --data-urlencode "SpeechResult=I want to change my phone number"
+```
+
+## Deployment
+
+This app can be deployed on Render or any Node.js hosting platform.
+
+Recommended Render settings:
+
+- Build command: `npm install`
+- Start command: `npm start`
+
+Once deployed, point your Twilio phone number to:
+
+```text
+https://your-render-service.onrender.com/incoming
+```

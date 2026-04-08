@@ -5,6 +5,13 @@
     "rootDir": "./",
     "outDir": "./dist",
     "esModuleInterop": true,
-    "strict": true
-  }
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "index.ts",
+    "src/**/*.ts"
+  ]
 }

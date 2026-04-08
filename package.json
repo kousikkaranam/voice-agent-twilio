@@ -1,21 +1,28 @@
 {
   "name": "voice-agent-twilio",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Twilio voice agent for handling 'Where is my money?' support calls.",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "postinstall": "npm run build",
     "start": "node dist/index.js",
     "dev": "ts-node index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run build && node test/intent.test.js"
   },
-  "keywords": [],
+  "keywords": [
+    "twilio",
+    "voice",
+    "typescript",
+    "express"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
-    "body-parser": "^2.2.2",
     "dotenv": "^17.4.1",
     "express": "^5.2.1",
     "twilio": "^5.13.1"
