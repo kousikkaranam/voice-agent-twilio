@@ -18,19 +18,35 @@ Most transfers are instant, but some can take up to 2 days depending on verifica
 `;
 
 // --- Intent Detection ---
-function isWhereIsMyMoney(query: string): boolean {
-  const q = query.toLowerCase();
+function normalizeSpeech(query: string): string {
+  return query
+    .toLowerCase()
+    .replace(/['’]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-  const keywords = [
-    "where is my money",
-    "track transfer",
-    "transfer status",
-    "money not received",
-    "payment status",
-    "where is my transfer"
+function isWhereIsMyMoney(query: string): boolean {
+  const normalized = normalizeSpeech(query);
+
+  const patterns = [
+    /where.*money/,
+    /track.*transfer/,
+    /transfer.*status/,
+    /money.*not.*received/,
+    /not.*received.*money/,
+    /payment.*status/,
+    /where.*transfer/,
+    /did(?:nt| not).*receive.*(money|transfer|payment)/,
+    /havent.*received.*(money|transfer|payment)/,
+    /have not.*received.*(money|transfer|payment)/,
+    /receive.*my.*(money|transfer|payment)/,
+    /(money|transfer|payment).*(still|yet|not).*received/,
+    /(money|transfer|payment).*(not|never).*arrived/
   ];
 
-  return keywords.some(k => q.includes(k));
+  return patterns.some((pattern) => pattern.test(normalized));
 }
 
 // --- Voice Webhook ---
